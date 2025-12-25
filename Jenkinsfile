@@ -13,7 +13,7 @@ pipeline {
         DOCKER_REPO = "dockervarun432/java-web-app"
         IMAGE_TAG   = "${BUILD_NUMBER}"
 
-        SONAR_PROJECT_KEY = "java-web-app"
+        SONAR_PROJECT_KEY = "tic-tac-toe"
         SONAR_HOST_URL    = "http://43.205.103.153:9000"
     }
 
@@ -60,17 +60,16 @@ pipeline {
             steps {
                 dir('app') {
                     withSonarQubeEnv('sonar') {
-                sh '''
-                  mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-                  -Dsonar.projectKey=java-web-app \
-                  -Dsonar.host.url=http://43.205.103.153:9000 \
-                  -Dsonar.login=$SONAR_TOKEN
-                '''
+                        sh '''
+                          mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                          -Dsonar.host.url=${SONAR_HOST_URL} \
+                          -Dsonar.login=${SONAR_TOKEN}
+                        '''
+                    }
+                }
             }
         }
-    }
-}
-
 
         stage('Maven Package') {
             steps {
@@ -89,18 +88,14 @@ pipeline {
                     withMaven(
                         jdk: 'jdk21',
                         maven: 'maven3',
-                        globalMavenSettingsConfig: 'global-settings',
+                        mavenSettingsConfig: 'maven-settings',
                         traceability: true
                     ) {
-                        sh '''
-                        mvn deploy -DskipTests
-                        '''
+                        sh 'mvn deploy -DskipTests'
                     }
                 }
             }
         }
-
-
 
         stage('Docker Build & Tag') {
             steps {
@@ -188,7 +183,7 @@ pipeline {
                 mimeType: 'text/html',
                 body: """
                 <h3 style="color:red;">Pipeline Failed</h3>
-                <p>Check Jenkins logs.</p>
+                <p>Check Jenkins console output.</p>
                 <p><a href="${BUILD_URL}">View Build</a></p>
                 """
             )
