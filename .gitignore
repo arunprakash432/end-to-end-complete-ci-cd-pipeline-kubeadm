@@ -1,3 +1,4 @@
 infra/.terraform/*
 infra/.terraform.lock.hcl
 .git
+settings.xml

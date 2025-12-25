@@ -86,14 +86,18 @@ pipeline {
             }
             steps {
                 dir('app') {
-                    sh '''
-                      mvn deploy -DskipTests \
-                      -Dnexus.username=${NEXUS_USR} \
-                      -Dnexus.password=${NEXUS_PSW}
-                    '''
+                    configFileProvider(
+                        [configFile(fileId: 'maven-settings', variable: 'MAVEN_SETTINGS')]
+                    ) {
+                        sh '''
+                        mvn deploy -DskipTests \
+                        --settings $MAVEN_SETTINGS
+                        '''
+                    }
                 }
             }
         }
+
 
         stage('Docker Build & Tag') {
             steps {
