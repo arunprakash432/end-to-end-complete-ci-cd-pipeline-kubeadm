@@ -1,4 +1,5 @@
 pipeline {
+
     agent any
 
     tools {
@@ -7,14 +8,14 @@ pipeline {
     }
 
     environment {
-        APP_NAME = "java-web-app"
-        NAMESPACE = "java-web-app"
+        APP_NAME   = "java-web-app"
+        NAMESPACE  = "java-web-app"
 
         DOCKER_REPO = "dockervarun432/java-web-app"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG   = "${BUILD_NUMBER}"
 
         SONAR_PROJECT_KEY = "java-web-app"
-        SONAR_HOST_URL = "http://43.205.103.153/:9000"
+        SONAR_HOST_URL    = "http://43.205.103.153:9000"
     }
 
     stages {
@@ -132,6 +133,7 @@ pipeline {
             }
             steps {
                 sh '''
+                  export KUBECONFIG=${KUBECONFIG}
                   kubectl apply -f k8s/namespace.yaml
                   kubectl apply -f k8s/
                 '''
@@ -144,6 +146,7 @@ pipeline {
             }
             steps {
                 sh '''
+                  export KUBECONFIG=${KUBECONFIG}
                   kubectl get pods -n ${NAMESPACE}
                   kubectl get svc -n ${NAMESPACE}
                 '''
@@ -152,6 +155,7 @@ pipeline {
     }
 
     post {
+
         always {
             archiveArtifacts artifacts: '*.html', fingerprint: true
         }
@@ -159,24 +163,29 @@ pipeline {
         success {
             emailext(
                 subject: "SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
+                to: "prakasharun484@gmail.com",
+                mimeType: 'text/html',
                 body: """
-                <h3>Pipeline Successful</h3>
-                <p>Docker Image: ${DOCKER_REPO}:${IMAGE_TAG}</p>
-                <p>Namespace: ${NAMESPACE}</p>
-                """,
-                to: "varunthegamie@gmail.com",
-                mimeType: 'text/html'
+                    <h3>Pipeline Successful</h3>
+                    <p><b>Application:</b> ${APP_NAME}</p>
+                    <p><b>Docker Image:</b> ${DOCKER_REPO}:${IMAGE_TAG}</p>
+                    <p><b>Namespace:</b> ${NAMESPACE}</p>
+                    <p><a href="${BUILD_URL}">View Build</a></p>
+                """
             )
         }
 
         failure {
             emailext(
                 subject: "FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
-                body: "<h3>Pipeline Failed – Check Jenkins Logs</h3>",
-                to: "varunthegamie@gmail.com",
-                mimeType: 'text/html'
+                to: "prakasharun484@gmail.com",
+                mimeType: 'text/html',
+                body: """
+                    <h3 style="color:red;">Pipeline Failed</h3>
+                    <p>Check Jenkins logs for details.</p>
+                    <p><a href="${BUILD_URL}">View Build</a></p>
+                """
             )
         }
     }
 }
-
