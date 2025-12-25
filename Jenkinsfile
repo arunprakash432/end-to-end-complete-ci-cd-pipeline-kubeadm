@@ -59,7 +59,7 @@ pipeline {
             }
             steps {
                 dir('app') {
-                    withSonarQubeEnv('SonarQube') {
+                    withSonarQubeEnv('sonar') {
                         sh """
                           mvn sonar:sonar \
                           -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
