@@ -15,6 +15,8 @@ pipeline {
 
         SONAR_PROJECT_KEY = "tic-tac-toe"
         SONAR_HOST_URL    = "http://43.205.103.153:9000"
+
+        RELEASE_VERSION = "0.0.1-build-${BUILD_NUMBER}"
     }
 
     stages {
@@ -91,7 +93,15 @@ pipeline {
                         mavenSettingsConfig: 'maven-settings',
                         traceability: true
                     ) {
-                        sh 'mvn deploy -DskipTests'
+                        sh '''
+                          echo "Releasing version ${RELEASE_VERSION}"
+
+                          mvn versions:set \
+                            -DnewVersion=${RELEASE_VERSION} \
+                            -DgenerateBackupPoms=false
+
+                          mvn deploy -DskipTests
+                        '''
                     }
                 }
             }
@@ -131,14 +141,16 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to Kubernetes (Ingress)') {
             environment {
                 KUBECONFIG = credentials('kubeconfig')
             }
             steps {
                 sh '''
                   kubectl apply -f k8s/namespace.yaml
-                  kubectl apply -f k8s/
+                  kubectl apply -f k8s/deployment.yaml
+                  kubectl apply -f k8s/service.yaml
+                  kubectl apply -f k8s/ingress.yaml
                 '''
             }
         }
@@ -151,6 +163,7 @@ pipeline {
                 sh '''
                   kubectl get pods -n ${NAMESPACE}
                   kubectl get svc -n ${NAMESPACE}
+                  kubectl get ingress -n ${NAMESPACE}
                 '''
             }
         }
@@ -159,34 +172,6 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: '*.html', fingerprint: true
-        }
-
-        success {
-            emailext(
-                subject: "SUCCESS: ${JOB_NAME} #${BUILD_NUMBER}",
-                to: "prakasharun484@gmail.com",
-                mimeType: 'text/html',
-                body: """
-                <h3>Pipeline Successful</h3>
-                <p><b>Application:</b> ${APP_NAME}</p>
-                <p><b>Docker Image:</b> ${DOCKER_REPO}:${IMAGE_TAG}</p>
-                <p><b>Namespace:</b> ${NAMESPACE}</p>
-                <p><a href="${BUILD_URL}">View Build</a></p>
-                """
-            )
-        }
-
-        failure {
-            emailext(
-                subject: "FAILED: ${JOB_NAME} #${BUILD_NUMBER}",
-                to: "prakasharun484@gmail.com",
-                mimeType: 'text/html',
-                body: """
-                <h3 style="color:red;">Pipeline Failed</h3>
-                <p>Check Jenkins console output.</p>
-                <p><a href="${BUILD_URL}">View Build</a></p>
-                """
-            )
         }
     }
 }
