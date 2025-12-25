@@ -60,16 +60,17 @@ pipeline {
             steps {
                 dir('app') {
                     withSonarQubeEnv('sonar') {
-                        sh """
-                          mvn sonar:sonar \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                          -Dsonar.host.url=${SONAR_HOST_URL} \
-                          -Dsonar.login=${SONAR_TOKEN}
-                        """
-                    }
-                }
+                sh '''
+                  mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                  -Dsonar.projectKey=java-web-app \
+                  -Dsonar.host.url=http://43.205.103.153:9000 \
+                  -Dsonar.login=$SONAR_TOKEN
+                '''
             }
         }
+    }
+}
+
 
         stage('Maven Package') {
             steps {
