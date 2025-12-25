@@ -80,23 +80,26 @@ pipeline {
             }
         }
 
-        stage('Publish to Nexus') {
+        stage('Publish To Nexus') {
             environment {
                 NEXUS = credentials('nexus-cred')
             }
             steps {
                 dir('app') {
-                    configFileProvider(
-                        [configFile(fileId: 'maven-settings', variable: 'MAVEN_SETTINGS')]
+                    withMaven(
+                        jdk: 'jdk21',
+                        maven: 'maven3',
+                        globalMavenSettingsConfig: 'global-settings',
+                        traceability: true
                     ) {
                         sh '''
-                        mvn deploy -DskipTests \
-                        --settings $MAVEN_SETTINGS
+                        mvn deploy -DskipTests
                         '''
                     }
                 }
             }
         }
+
 
 
         stage('Docker Build & Tag') {
