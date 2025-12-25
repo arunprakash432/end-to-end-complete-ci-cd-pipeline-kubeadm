@@ -18,10 +18,3 @@ spec:
           image: dockervarun432/java-web-app:latest
           ports:
             - containerPort: 8082
-          resources:
-            requests:
-              cpu: "200m"
-              memory: "256Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"

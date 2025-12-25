@@ -4,10 +4,9 @@ metadata:
   name: java-web-app-service
   namespace: java-web-app
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: java-web-app
   ports:
     - port: 80
       targetPort: 8082
-      nodePort: 30082
