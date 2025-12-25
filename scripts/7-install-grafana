@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Installing Grafana..."
+
+# Update system
+apt-get update -y
+apt-get install -y apt-transport-https software-properties-common wget
+
+# Add Grafana GPG key
+wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | tee /usr/share/keyrings/grafana.gpg > /dev/null
+
+# Add Grafana repository
+echo "deb [signed-by=/usr/share/keyrings/grafana.gpg] https://apt.grafana.com stable main" \
+  | tee /etc/apt/sources.list.d/grafana.list
+
+# Install Grafana
+apt-get update -y
+apt-get install -y grafana
+
+# Enable and start Grafana service
+systemctl daemon-reload
+systemctl enable grafana-server
+systemctl start grafana-server
+
+echo "Grafana installation complete!"
+echo "Grafana is running at: http://localhost:3000"
+echo "Default credentials: admin / admin"
