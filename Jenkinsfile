@@ -141,19 +141,19 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes (Ingress)') {
+        stage('Deploy to Kubernetes') {
             environment {
                 KUBECONFIG = credentials('kubeconfig')
             }
             steps {
                 sh '''
-                  kubectl apply -f k8s/namespace.yaml
-                  kubectl apply -f k8s/deployment.yaml
-                  kubectl apply -f k8s/service.yaml
-                  kubectl apply -f k8s/ingress.yaml
+                kubectl apply -f k8s/namespace.yaml
+                kubectl apply -f k8s/deployment.yaml
+                kubectl apply -f k8s/service.yaml
                 '''
             }
         }
+
 
         stage('Verify Deployment') {
             environment {
@@ -163,7 +163,6 @@ pipeline {
                 sh '''
                   kubectl get pods -n ${NAMESPACE}
                   kubectl get svc -n ${NAMESPACE}
-                  kubectl get ingress -n ${NAMESPACE}
                 '''
             }
         }

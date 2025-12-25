@@ -4,7 +4,7 @@ metadata:
   name: java-web-app-service
   namespace: java-web-app
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: java-web-app
   ports:
