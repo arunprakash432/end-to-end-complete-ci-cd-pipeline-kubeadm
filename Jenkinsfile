@@ -1,5 +1,4 @@
 pipeline {
-
     agent any
 
     tools {
@@ -8,8 +7,8 @@ pipeline {
     }
 
     environment {
-        APP_NAME   = "java-web-app"
-        NAMESPACE  = "java-web-app"
+        APP_NAME  = "java-web-app"
+        NAMESPACE = "java-web-app"
 
         DOCKER_REPO = "dockervarun432/java-web-app"
         IMAGE_TAG   = "${BUILD_NUMBER}"
@@ -45,10 +44,11 @@ pipeline {
         stage('Trivy Filesystem Scan') {
             steps {
                 sh '''
-                  trivy fs \
+                  trivy fs . \
+                  --exit-code 0 \
+                  --severity HIGH,CRITICAL \
                   --format table \
-                  -o trivy-fs-report.html \
-                  .
+                  -o trivy-fs-report.html
                 '''
             }
         }
@@ -106,10 +106,11 @@ pipeline {
         stage('Trivy Image Scan') {
             steps {
                 sh '''
-                  trivy image \
+                  trivy image ${DOCKER_REPO}:${IMAGE_TAG} \
+                  --exit-code 0 \
+                  --severity HIGH,CRITICAL \
                   --format table \
-                  -o trivy-image-report.html \
-                  ${DOCKER_REPO}:${IMAGE_TAG}
+                  -o trivy-image-report.html
                 '''
             }
         }
@@ -133,7 +134,6 @@ pipeline {
             }
             steps {
                 sh '''
-                  export KUBECONFIG=${KUBECONFIG}
                   kubectl apply -f k8s/namespace.yaml
                   kubectl apply -f k8s/
                 '''
@@ -146,7 +146,6 @@ pipeline {
             }
             steps {
                 sh '''
-                  export KUBECONFIG=${KUBECONFIG}
                   kubectl get pods -n ${NAMESPACE}
                   kubectl get svc -n ${NAMESPACE}
                 '''
@@ -155,7 +154,6 @@ pipeline {
     }
 
     post {
-
         always {
             archiveArtifacts artifacts: '*.html', fingerprint: true
         }
@@ -166,11 +164,11 @@ pipeline {
                 to: "prakasharun484@gmail.com",
                 mimeType: 'text/html',
                 body: """
-                    <h3>Pipeline Successful</h3>
-                    <p><b>Application:</b> ${APP_NAME}</p>
-                    <p><b>Docker Image:</b> ${DOCKER_REPO}:${IMAGE_TAG}</p>
-                    <p><b>Namespace:</b> ${NAMESPACE}</p>
-                    <p><a href="${BUILD_URL}">View Build</a></p>
+                <h3>Pipeline Successful</h3>
+                <p><b>Application:</b> ${APP_NAME}</p>
+                <p><b>Docker Image:</b> ${DOCKER_REPO}:${IMAGE_TAG}</p>
+                <p><b>Namespace:</b> ${NAMESPACE}</p>
+                <p><a href="${BUILD_URL}">View Build</a></p>
                 """
             )
         }
@@ -181,9 +179,9 @@ pipeline {
                 to: "prakasharun484@gmail.com",
                 mimeType: 'text/html',
                 body: """
-                    <h3 style="color:red;">Pipeline Failed</h3>
-                    <p>Check Jenkins logs for details.</p>
-                    <p><a href="${BUILD_URL}">View Build</a></p>
+                <h3 style="color:red;">Pipeline Failed</h3>
+                <p>Check Jenkins logs.</p>
+                <p><a href="${BUILD_URL}">View Build</a></p>
                 """
             )
         }
