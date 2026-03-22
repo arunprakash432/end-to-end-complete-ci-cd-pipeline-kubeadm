@@ -1,0 +1,14 @@
+---
+- name: Run scripts on group_one hosts
+  hosts: master_node
+  become: yes
+  tasks:
+    - name: Run script 1
+      ansible.builtin.script: scripts/1-master-worker-node.sh
+
+- name: Run script on group_two hosts
+  hosts: worker_nodes
+  become: yes
+  tasks:
+    - name: Run script 3
+      ansible.builtin.script: scripts/1-master-worker-node.sh
