@@ -169,8 +169,35 @@ pipeline {
     }
 
     post {
-        always {
-            archiveArtifacts artifacts: '*.html', fingerprint: true
+        success {
+            emailext (
+                subject: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+                Good news!
+
+                Job Name: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+                Status: SUCCESS
+
+                Check details: ${env.BUILD_URL}
+                """,
+                to: "example@gmail.com"
+            )
+        }
+
+        failure {
+            emailext (
+                subject: "FAILURE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+                Build failed!
+
+                Job Name: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+                Status: FAILURE
+
+                Check details: ${env.BUILD_URL}
+                """,
+                to: "example@gmail.com"
+            )
         }
     }
-}
